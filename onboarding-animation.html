@@ -3,43 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>macOS Onboarding Animation</title>
+    <title>macOS Onboarding Status</title>
     <style>
         body {
             margin: 0;
-            padding: 15px;
+            padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
-            background-color: #f5f5f7;
+            background-color: transparent;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 200px;
+            height: 100vh;
             overflow: hidden;
         }
 
-        .container {
-            background: white;
-            border-radius: 12px;
-            padding: 20px 30px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        .status-container {
             text-align: center;
+            padding: 20px;
             width: 100%;
-            max-width: 500px;
-            position: relative;
         }
 
-        .spinner-container {
+        /* Loading State */
+        .loading-state {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
         }
 
         .spinner {
-            width: 60px;
-            height: 60px;
-            border: 3px solid #e5e5e7;
-            border-top: 3px solid #FF6900;
+            width: 80px;
+            height: 80px;
+            border: 4px solid #e5e5e7;
+            border-top: 4px solid #FF6900;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -50,28 +46,27 @@
         }
 
         .status-text {
-            font-size: 18px;
-            font-weight: 500;
+            font-size: 24px;
+            font-weight: 600;
             color: #1d1d1f;
             margin: 0;
         }
 
         .sub-text {
-            font-size: 14px;
+            font-size: 16px;
             color: #86868b;
             margin: 5px 0 0;
         }
 
         .progress-dots {
             display: flex;
-            gap: 6px;
+            gap: 8px;
             justify-content: center;
-            margin-top: 10px;
         }
 
         .dot {
-            width: 8px;
-            height: 8px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
             background-color: #e5e5e7;
             animation: pulse 1.4s infinite ease-in-out both;
@@ -92,17 +87,17 @@
             }
         }
 
-        /* Completion state */
-        .complete-container {
+        /* Complete State */
+        .complete-state {
             display: none;
             flex-direction: column;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
         }
 
-        .checkmark {
-            width: 60px;
-            height: 60px;
+        .checkmark-circle {
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
             background-color: #34c759;
             display: flex;
@@ -112,19 +107,25 @@
         }
 
         @keyframes scaleIn {
-            0% { transform: scale(0); }
-            100% { transform: scale(1); }
+            0% { 
+                transform: scale(0);
+                opacity: 0;
+            }
+            100% { 
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
-        .checkmark svg {
-            width: 30px;
-            height: 30px;
+        .checkmark {
+            width: 40px;
+            height: 40px;
             stroke: white;
-            stroke-width: 3;
+            stroke-width: 4;
             fill: none;
             stroke-linecap: round;
             stroke-linejoin: round;
-            animation: drawCheck 0.3s ease-out 0.2s forwards;
+            animation: drawCheck 0.4s ease-out 0.3s forwards;
             stroke-dasharray: 50;
             stroke-dashoffset: 50;
         }
@@ -135,35 +136,55 @@
             }
         }
 
-        .tip-box {
-            background-color: #fff3e0;
-            border: 1px solid #ffb74d;
-            border-radius: 8px;
-            padding: 12px 16px;
-            margin-top: 10px;
-            text-align: left;
-            max-width: 400px;
+        .success-message {
+            animation: fadeIn 0.5s ease-out 0.5s forwards;
+            opacity: 0;
         }
 
-        .tip-header {
-            font-size: 14px;
-            font-weight: 600;
-            color: #ff6900;
-            margin-bottom: 4px;
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
         }
 
-        .tip-text {
-            font-size: 13px;
-            color: #5a5a5e;
-            margin: 0;
-            line-height: 1.4;
+        /* Error State */
+        .error-state {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .error-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: #ff3b30;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: scaleIn 0.3s ease-out;
+        }
+
+        .error-x {
+            width: 40px;
+            height: 40px;
+            stroke: white;
+            stroke-width: 4;
+            fill: none;
+            stroke-linecap: round;
+        }
+
+        /* Hide everything by default when states change */
+        .hidden {
+            display: none !important;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Loading state -->
-        <div class="spinner-container" id="loadingState">
+    <div class="status-container">
+        <!-- Loading State -->
+        <div class="loading-state" id="loadingState">
             <div class="spinner"></div>
             <h2 class="status-text">Almost there</h2>
             <p class="sub-text">Finalizing configuration...</p>
@@ -174,59 +195,87 @@
             </div>
         </div>
 
-        <!-- Complete state -->
-        <div class="complete-container" id="completeState">
-            <div class="checkmark">
-                <svg viewBox="0 0 24 24">
+        <!-- Complete State -->
+        <div class="complete-state" id="completeState">
+            <div class="checkmark-circle">
+                <svg class="checkmark" viewBox="0 0 24 24">
                     <path d="M5 12l5 5L20 7"></path>
                 </svg>
             </div>
-            <h2 class="status-text">Setup Complete!</h2>
-            <p class="sub-text">Your Mac is ready to use</p>
-            
-            <div class="tip-box">
-                <div class="tip-header">Quick Tip:</div>
-                <p class="tip-text">Hold ⌘ when clicking links to open them in a new tab.</p>
+            <div class="success-message">
+                <h2 class="status-text">Setup Complete!</h2>
+                <p class="sub-text">Your Mac is ready to use</p>
             </div>
+        </div>
+
+        <!-- Error State -->
+        <div class="error-state" id="errorState">
+            <div class="error-circle">
+                <svg class="error-x" viewBox="0 0 24 24">
+                    <path d="M6 6l12 12M6 18L18 6" stroke="currentColor"></path>
+                </svg>
+            </div>
+            <h2 class="status-text">Setup Failed</h2>
+            <p class="sub-text">Please contact IT support</p>
         </div>
     </div>
 
     <script>
+        // Function to show complete state
         function showComplete() {
-            const loadingState = document.getElementById('loadingState');
-            const completeState = document.getElementById('completeState');
-            
-            // Hide loading state
-            loadingState.style.display = 'none';
-            
-            // Show complete state
-            completeState.style.display = 'flex';
-            
-            // Update the tip periodically
-            const tips = [
-                "Hold ⌘ when clicking links to open them in a new tab.",
-                "Use Mission Control (F3) to manage multiple desktops efficiently.",
-                "Press ⌘+Space to quickly search for apps and files.",
-                "Swipe with three fingers to switch between full-screen apps.",
-                "Use ⌘+Tab to quickly switch between open applications."
-            ];
-            
-            let tipIndex = 0;
-            setInterval(() => {
-                tipIndex = (tipIndex + 1) % tips.length;
-                document.querySelector('.tip-text').textContent = tips[tipIndex];
-            }, 5000);
+            console.log('showComplete called');
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('errorState').classList.add('hidden');
+            document.getElementById('completeState').classList.remove('hidden');
+            document.getElementById('completeState').style.display = 'flex';
         }
 
-        // Listen for messages from parent window (if needed)
+        // Function to show error state
+        function showError() {
+            console.log('showError called');
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('completeState').classList.add('hidden');
+            document.getElementById('errorState').classList.remove('hidden');
+            document.getElementById('errorState').style.display = 'flex';
+        }
+
+        // Function to show loading state
+        function showLoading() {
+            console.log('showLoading called');
+            document.getElementById('completeState').classList.add('hidden');
+            document.getElementById('errorState').classList.add('hidden');
+            document.getElementById('loadingState').classList.remove('hidden');
+            document.getElementById('loadingState').style.display = 'flex';
+        }
+
+        // Expose functions globally
+        window.showComplete = showComplete;
+        window.showError = showError;
+        window.showLoading = showLoading;
+
+        // Listen for messages
         window.addEventListener('message', function(e) {
-            if (e.data === 'showComplete') {
+            console.log('Message received:', e.data);
+            if (e.data === 'complete' || e.data === 'showComplete') {
                 showComplete();
+            } else if (e.data === 'error' || e.data === 'showError') {
+                showError();
+            } else if (e.data === 'loading' || e.data === 'showLoading') {
+                showLoading();
             }
         });
 
-        // Also expose the function globally for direct JavaScript calls
-        window.showComplete = showComplete;
+        // Also check for function calls in the URL hash (backup method)
+        function checkHash() {
+            if (window.location.hash === '#complete') {
+                showComplete();
+            } else if (window.location.hash === '#error') {
+                showError();
+            }
+        }
+        
+        window.addEventListener('hashchange', checkHash);
+        checkHash();
     </script>
 </body>
 </html>
